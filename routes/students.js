@@ -2,9 +2,12 @@ var express = require('express')
 var mongodb = require('mongodb')
 var objectId=mongodb.ObjectId;
 var router = express.Router();
+var jwt=require('jsonwebtoken')
+var validateToken=require('../common/validateToken')
 var getDB = require('../common/dbConn')
 //To update the data in DB use the post methode
-router.post("/register", async function (req, res, next) {// req received
+router.post("/register", validateToken,
+    async function (req, res, next) {// req received
     try {
         const data = req.body.data;
         const db = await getDB();
@@ -17,7 +20,8 @@ router.post("/register", async function (req, res, next) {// req received
     }
 })
 //To retrive the data from the DB use the get methode
-router.get('/get-std', async function (req, res, next) {
+router.get('/get-std',validateToken,
+    async function (req, res, next) {
     try {
         const db = await getDB();
         const collection = db.collection('students');
@@ -29,7 +33,7 @@ router.get('/get-std', async function (req, res, next) {
     }
 })
 //To update any document or id in DB through put methode
-router.put('/update-std', async function(req,res,next){
+router.put('/update-std',validateToken, async function(req,res,next){
    try{ var id=req.query.id;
     var data=req.body.data;
     var db= await getDB()
@@ -43,7 +47,7 @@ router.put('/update-std', async function(req,res,next){
 
 })
 //To delete the data in the DB using the delete methode
-router.delete('/delete-std/:id',async function(req,res,next){
+router.delete('/delete-std/:id',validateToken,async function(req,res,next){
 try{
     var id=req.params.id;
     var db= await getDB()
@@ -55,6 +59,17 @@ try{
     console.error(ex);
     res.send(ex)
 }
+
+})
+
+router.post('/login',function(req,res,next){
+    const {uid,pwd}=req.body
+   const token= jwt.sign({uid,pwd},'appToken')
+    if(uid==='vinay'&&pwd==='ram'){
+        res.send([{uid,pwd,token}])
+    }else{
+        res.send([])
+    }
 
 })
 module.exports = router;
